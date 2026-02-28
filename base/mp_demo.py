@@ -55,5 +55,5 @@ if __name__ == "__main__":
     c2.join()
 
     print("所有进程执行完毕")
-
+    print(1)
 
