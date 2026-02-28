@@ -30,3 +30,34 @@ if __name__ == "__main__":
     # 输出张量 a 中的最大值
     print("张量 a 中的最大值:")
     print(a.max())
+
+    print("===================")
+    print(torch.randn(2, device=device, dtype=dtype))
+    print(torch.randn(2, 3, device=device, dtype=dtype))
+    print(torch.randn(2, 3, 4, device=device, dtype=dtype))
+    print(torch.randn(2, 3, 2, 2, device=device, dtype=dtype))
+
+
+
+    device = "cpu"
+    seed = 42
+
+    generator = torch.Generator(device=device).manual_seed(seed)
+
+    # 使用生成器创建随机张量
+    random_tensor1 = torch.randn(3, 3, generator=generator)
+    random_tensor2 = torch.randn(3, 3, generator=generator)
+
+    print("第一次生成的随机数:")
+    print(random_tensor1)
+    print("\n第二次生成的随机数:")
+    print(random_tensor2)
+
+    # 重置生成器状态（使用相同种子）
+    generator = torch.Generator(device=device).manual_seed(seed)
+    random_tensor3 = torch.randn(3, 3, generator=generator)
+
+    print("\n重置后生成的随机数（应该与第一次相同）:")
+    print(random_tensor3)
+    print(f"\n两次生成是否相同: {torch.allclose(random_tensor1, random_tensor3)}")
+    print(torch.randn(3, 3, generator=generator))
