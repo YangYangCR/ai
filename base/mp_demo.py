@@ -54,6 +54,8 @@ if __name__ == "__main__":
     c1.join()
     c2.join()
 
+    print("master")
+
     print("所有进程执行完毕")
     print(1)
 
