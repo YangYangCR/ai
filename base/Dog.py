@@ -1,9 +1,8 @@
 import zmq
+import multiprocessing
 
-from base.Animal import Animal
 
-
-class Dog(Animal):
+class Dog():
 
     def __init__(self):
         super().__init__()
@@ -35,3 +34,14 @@ if __name__ == "__main__":
     for item in multi_data():
         print(type(item))
         print(item)
+
+    print(1_000_000 * 256 / 1024 / 1024)
+
+    # ctx = zmq.Context()
+    # sync_push = ctx.socket(zmq.PUSH)
+    # sync_push.connect(f"tcp://localhost:5555")
+    # sync_push.send_string("xxx")
+    # print("send success")
+    # queue = multiprocessing.Queue()
+    # queue.get()
+    print(1772778504.774991 - 1772778499.3782356)
