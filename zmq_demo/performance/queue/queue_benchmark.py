@@ -11,6 +11,7 @@ import os
 import argparse
 from multiprocessing.managers import DictProxy
 
+
 def producer_worker(q: mp.Queue, msg_size: int, count: int, consumers: int, share_time: DictProxy):
     """生产者进程"""
     msg = os.urandom(msg_size)
@@ -46,13 +47,13 @@ def consumer_worker(q: mp.Queue, msg_size: int, count: int, worker_id: int, shar
         except EOFError:
             print(f"[consumer{worker_id}]stop")
     end = time.time()
-    dt = end - start
+    duration = end - start
     share_time["end_time"] = end
     print(f"consumer end {end:.4f} s")
     print(f"[consumer{worker_id}]count: {read_count}")
-    print(f"[consumer{worker_id}]Time: {dt:.4f} s")
-    print(f"[consumer{worker_id}]Throughput: {read_count / dt:,.0f} msg/s")
-    print(f"[consumer{worker_id}]Bandwidth: {msg_size * read_count / (1024 * 1024):,.2f} MB/s\n")
+    print(f"[consumer{worker_id}]Time: {duration:.4f} s")
+    print(f"[consumer{worker_id}]Throughput: {read_count / duration:,.0f} msg/s")
+    print(f"[consumer{worker_id}]Bandwidth: {msg_size * read_count / (1024 * 1024) / duration:,.2f} MB/s\n")
     return end - start
 
 
