@@ -101,7 +101,7 @@ def run_benchmark(msg_size, msg_count, consumers):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="zmq 吞吐压测")
     parser.add_argument("--size", type=int, default=256, help="消息大小（字节）")
-    parser.add_argument("--count", type=int, default=1_000_0, help="每个生产者发多少条消息")
+    parser.add_argument("--count", type=int, default=1_000_000, help="每个生产者发多少条消息")
     parser.add_argument("--consumers", type=int, default=2, help="消费者数量")
     args = parser.parse_args()
 
