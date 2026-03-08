@@ -7,12 +7,13 @@ import argparse
 from vllm.distributed.device_communicators.shm_broadcast import MessageQueue, Handle
 
 
-def enqueue_worker(msg_count, msg_size, queue: MessageQueue, consumers: int):
+def enqueue_worker(msg_count, msg_size, queue: MessageQueue, consumers: int, share_dict):
     """PUSH 端作为服务端"""
-    batch_size = 128
+    batch_size = 1024 * 10  # 一次最少发送10K的消息
     print(f"[producer] start")
     msg = os.urandom(msg_size)  # 二进制消息
     start = time.time()
+    share_dict["start_time"] = start
     buffer = []
     for i in range(msg_count):
         buffer.append(msg)
@@ -34,7 +35,7 @@ def enqueue_worker(msg_count, msg_size, queue: MessageQueue, consumers: int):
     print(f"[producer] Bandwidth: {mb_per_sec:,.2f} MB/s")
 
 
-def dequeue_worker(worker_id: int, msg_size: int, handle: Handle, rank: int):
+def dequeue_worker(worker_id: int, msg_size: int, handle: Handle, rank: int, share_dict):
     queue = MessageQueue.create_from_handle(handle, rank)
     queue.wait_until_ready()
     print(f"[consumer{worker_id}] dequeue worker started...")
@@ -77,25 +78,29 @@ def run_benchmark(msg_size, msg_count, consumers):
         n_reader=consumers,
         n_local_reader=consumers,
         local_reader_ranks=[i for i in range(consumers)],
-        max_chunk_bytes=1024 * 1024,
+        max_chunk_bytes=1024 * 1024 * 100,  # 100M chunk大小 多条消息攒到max_chunk_bytes大小，然后通过zmq发送
         max_chunks=10,
     )
     handle = queue.export_handle()
 
+    manager = mp.Manager()
+    share_dict = manager.dict()
     # 启动消费者
     consumer_pool = []
     for i in range(consumers):
-        p = mp.Process(target=dequeue_worker, args=(i, msg_size, handle, i))
+        p = mp.Process(target=dequeue_worker, args=(i, msg_size, handle, i, share_dict))
         consumer_pool.append(p)
         p.start()
     queue.wait_until_ready()
     time.sleep(5)
     print("All consumers are fully connected")
     # 启动生产者
-    p = mp.Process(target=enqueue_worker, args=(msg_count, msg_size, queue, consumers))
+    p = mp.Process(target=enqueue_worker, args=(msg_count, msg_size, queue, consumers, share_dict))
     p.start()
     for p in consumer_pool:
         p.join()
+    all_time = time.time() - share_dict["start_time"]
+    print(f"all time {all_time}")
 
 
 if __name__ == "__main__":
