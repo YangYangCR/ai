@@ -36,6 +36,7 @@ def enqueue_worker(msg_count, msg_size, queue: MessageQueue, consumers: int, sha
 
 
 def dequeue_worker(worker_id: int, msg_size: int, handle: Handle, rank: int, share_dict):
+    # rank代表当前read的标识，因为MessageQueue是广播队列，每个reader都要读取到所有消息，所以需要记录每个reader读取到了哪个位置，所以需要标识reader
     queue = MessageQueue.create_from_handle(handle, rank)
     queue.wait_until_ready()
     print(f"[consumer{worker_id}] dequeue worker started...")
@@ -104,7 +105,7 @@ def run_benchmark(msg_size, msg_count, consumers):
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="zmq 吞吐压测")
+    parser = argparse.ArgumentParser(description="message 吞吐压测")
     parser.add_argument("--size", type=int, default=256, help="消息大小（字节）")
     parser.add_argument("--count", type=int, default=1_000_000, help="每个生产者发多少条消息")
     parser.add_argument("--consumers", type=int, default=2, help="消费者数量")

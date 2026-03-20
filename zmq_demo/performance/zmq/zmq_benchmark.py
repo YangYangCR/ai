@@ -94,6 +94,7 @@ def pull_worker(worker_id: int, msg_count: int, msg_size: int, ready_event: mp.E
                 break
             if start is None:
                 start = time.time()
+            received += 1
         except zmq.Again:
             break
     # while received < msg_count:
@@ -144,7 +145,7 @@ def run_benchmark(msg_size, msg_count, producers, consumers):
         e.wait()
     print("All consumers are fully connected")
     # 启动生产者
-    time.sleep(15)
+    # time.sleep(15)
     producer_pool = []
     for _ in range(producers):
         p = mp.Process(target=push_worker, args=(total_msgs, msg_size, consumers, share_time))
@@ -156,12 +157,12 @@ def run_benchmark(msg_size, msg_count, producers, consumers):
     for p in consumer_pool:
         p.join()
     print("all task finished")
-    max_endtime = time.time() - 24 * 60 * 60
-    print(share_time.keys())
-    for k in share_time.keys():
-        print(f"values is {share_time[k]}")
-        if k.startswith("end_time_") and share_time[k] >= max_endtime:
-            max_endtime = share_time[k]
+    # max_endtime = time.time() - 24 * 60 * 60
+    # print(share_time.keys())
+    # for k in share_time.keys():
+    #     print(f"values is {share_time[k]}")
+    #     if k.startswith("end_time_") and share_time[k] >= max_endtime:
+    #         max_endtime = share_time[k]
     all_time = time.time() - share_time.get("start_time", None)
     print(f"all spend time: {all_time:.4f} s")
 

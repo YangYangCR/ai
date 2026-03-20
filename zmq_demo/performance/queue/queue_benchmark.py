@@ -25,7 +25,7 @@ def producer_worker(q: mp.Queue, msg_size: int, count: int, consumers: int, shar
     print(f"[producer]Count: {count}")
     print(f"[producer]Time: {dt:.4f} s")
     print(f"[producer]Throughput: {count / dt:,.0f} msg/s")
-    print(f"[producer]Bandwidth:   {msg_size * count / (1024 * 1024):,.2f} MB/s\n")
+    print(f"[producer]Bandwidth:   {msg_size * count / (1024 * 1024) / dt:,.2f} MB/s\n")
     for _ in range(consumers):
         q.put("stop")
     return end - start
@@ -95,9 +95,9 @@ def run_benchmark(msg_size, msg_count, producers, consumers):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="multiprocessing.Queue() 吞吐压测")
     parser.add_argument("--size", type=int, default=256, help="消息大小（字节）")
-    parser.add_argument("--count", type=int, default=1000000, help="每个生产者发多少条消息")
+    parser.add_argument("--count", type=int, default=1_000_000, help="每个生产者发多少条消息")
     parser.add_argument("--producers", type=int, default=1, help="生产者数量")
-    parser.add_argument("--consumers", type=int, default=2, help="消费者数量")
+    parser.add_argument("--consumers", type=int, default=4, help="消费者数量")
     args = parser.parse_args()
 
     run_benchmark(
