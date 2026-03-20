@@ -4,6 +4,9 @@ import sys
 from multiprocessing import Process, Queue
 import time
 import random
+import select
+
+import zmq
 
 
 def producer(q, name):
@@ -32,7 +35,8 @@ def consumer(q, name):
 def process1():
     print(f"child self {os.getpid()}")
     print(f"child patent {os.getppid()}")
-    print(f"child group id {os.getpgid(os.getpid())}")
+
+    # print(f"child group id {os.getpgid(os.getpid())}")
 
     def handle_child_exit(signum, frame):
         print(f"child self exit {signum}...")
@@ -41,59 +45,86 @@ def process1():
     signal.signal(signal.SIGTERM, handle_child_exit)
     # ctrl + c
     signal.signal(signal.SIGINT, handle_child_exit)
-    time.sleep(10000)
+    time.sleep(10)
+    print(f"child1 finished")
+    return "process1"
+
+
+def process2():
+    print(f"child self {os.getpid()}")
+    print(f"child patent {os.getppid()}")
+
+    # print(f"child group id {os.getpgid(os.getpid())}")
+
+    def handle_child_exit(signum, frame):
+        print(f"child self exit {signum}...")
+
+    # kill(kill -9不生效)
+    signal.signal(signal.SIGTERM, handle_child_exit)
+    # ctrl + c
+    signal.signal(signal.SIGINT, handle_child_exit)
+    time.sleep(5)
+    print(f"child2 finished")
+    return "process2"
 
 
 if __name__ == "__main__":
-    child_process = Process(target=process1, args=())
-    child_process.start()
+    child_process1 = Process(target=process1, args=())
+    child_process1.start()
+    child_process2 = Process(target=process2, args=())
+    child_process2.start()
     print(f"main self {os.getpid()}")
     print(f"main parent {os.getppid()}")
-    print(f"main group id {os.getpgid(os.getpid())}")
+
+
+    # print(f"main group id {os.getpgid(os.getpid())}")
 
     def handle_exit(signum, frame):
-        child_process.terminate()
+        child_process1.terminate()
         print("child process terminated")
         sys.exit(0)
+
 
     # kill(kill -9不生效)
     signal.signal(signal.SIGTERM, handle_exit)
     # ctrl + c
     signal.signal(signal.SIGINT, handle_exit)
 
-    time.sleep(10000)
+    # time.sleep(10000)
     # 创建队列
     # q = Queue()
     # q.get(timeout="6")
     # print("=====")
+    # poller = zmq.Poller()
+    # poller.register(child_process.sentinel, zmq.POLLIN)
 
-    # print(id(10))
+    print("================")
+    print(any([10, 0]))
 
-    # # 创建进程
-    # p1 = Process(target=producer, args=(q, "P1"))
-    # p2 = Process(target=producer, args=(q, "P2"))
-    # c1 = Process(target=consumer, args=(q, "C1"))
-    # c2 = Process(target=consumer, args=(q, "C2"))
-    #
-    # # 启动进程
-    # p1.start()
-    # p2.start()
-    # c1.start()
-    # c2.start()
-    #
-    # # 等待生产者结束
-    # p1.join()
-    # p2.join()
-    #
-    # # 发送结束信号给消费者（每个消费者都需要一个结束信号）
-    # q.put(None)
-    # q.put(None)
-    #
-    # # 等待消费者结束
-    # c1.join()
-    # c2.join()
-    #
-    # print("master")
-    #
-    # print("所有进程执行完毕")
-    # print(1)
+    fd1 = child_process1.sentinel  # 子进程句柄
+    fd2 = child_process2.sentinel  # 子进程句柄
+
+    # 子进程结束，变为可读，这里的可读并不是“有数据”，而是 可以读取到 EOF，该方法阻塞到任意一个进程结束
+    # readable, writable, exceptional = select.select([fd1, fd2], [], [])  # rlist为可读事件，类似于io多路复用
+    # for fd in readable:
+    #     data = os.read(fd, 1024)
+    #     print(f"从 fd {fd} 读到数据：", data.decode())
+
+    """
+    select.EPOLLIN     # 可读
+    select.EPOLLOUT    # 可写
+    select.EPOLLERR    # 错误
+    select.EPOLLHUP    # 关闭/挂起
+    select.EPOLLET     # 边缘触发（Edge Triggered）
+    """
+    epoll = select.epoll()
+    epoll.register(fd1, select.EPOLLIN)
+    epoll.register(fd2, select.EPOLLIN)
+    while True:
+        events = epoll.poll(50)  # 阻塞最多 5 秒
+        for fd, event in events:
+            print(f"fd is {fd}")
+            # if fd == child_process1.sentinel.fileno():
+            #     print("Child process finished (epoll detected)")
+            # elif fd == child_process2.sentinel:
+            #     print("Socket ready to accept")

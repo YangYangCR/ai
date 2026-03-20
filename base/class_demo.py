@@ -32,8 +32,10 @@ class Dog(Animal):
         super().__init__(name)
         print("this is dog")
 
+    @property
     def run(self):
         print("dog run")
+        return "100"
 
 
 @dataclasses.dataclass(frozen=True)
@@ -134,6 +136,7 @@ def gen() -> str:
 if __name__ == "__main__":
     # bind_to_specific_ip()
     dog = Dog("dh")
+    data = dog.run
     # dict_ = defaultdict(lambda: PipelineState("10"))
     dict_ = defaultdict(lambda: Gen("Tom", 10))
     # dict_["name"] = "jerry"
