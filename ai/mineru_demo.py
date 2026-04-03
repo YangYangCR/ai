@@ -22,6 +22,8 @@ if __name__ == "__main__":
         processor=processor
     )
 
-    image = Image.open("/path/to/the/test/image.png")
+    print("===================================")
+    image = Image.open("C:\\Users\\87435\\Downloads\\1.png")
     extracted_blocks = client.two_step_extract(image)
+    print("===================================")
     print(extracted_blocks)

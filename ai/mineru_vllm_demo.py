@@ -14,6 +14,6 @@ if __name__ == "__main__":
         vllm_llm=llm
     )
 
-    image = Image.open("/path/to/the/test/image.png")
+    image = Image.open("C:\\Users\\87435\\Downloads\\graph.png")
     extracted_blocks = client.two_step_extract(image)
     print(extracted_blocks)
