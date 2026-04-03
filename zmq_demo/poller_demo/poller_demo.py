@@ -4,11 +4,13 @@ if __name__ == "__main__":
     ctx = zmq.Context()
 
     # 创建两个 PULL socket
-    socket1 = ctx.socket(zmq.PULL)
-    socket1.bind("tcp://*:5555")
+    socket1 = ctx.socket(zmq.DEALER)
+    socket1.connect("tcp://127.0.0.1:5555")
+    socket1.setsockopt(zmq.IDENTITY, b"1")
 
-    socket2 = ctx.socket(zmq.PULL)
-    socket2.bind("tcp://*:5556")
+    socket2 = ctx.socket(zmq.DEALER)
+    socket2.connect("tcp://127.0.0.1:5556")
+    socket2.setsockopt(zmq.IDENTITY, b"2")
 
     # 创建 Poller
     poller = zmq.Poller()
@@ -19,7 +21,7 @@ if __name__ == "__main__":
 
     while True:
         # timeout=1000ms
-        events = dict(poller.poll(timeout=1000))
+        events = dict(poller.poll(timeout=10000000))
 
         if socket1 in events:
             msg = socket1.recv()
