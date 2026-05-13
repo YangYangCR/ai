@@ -12,5 +12,7 @@ if __name__ == "__main__":
     output_data = ["out1", "out2", "out3"]
     address = Address(input=input_data, output=output_data)
     print(address.input)
-    (in1, in2, in3) = address.input
+    (in1, in2, in3) = address.input  # list转元组
     print(in1)
+    in_first, *_ = address.input  # list转元组
+    print(in_first)
